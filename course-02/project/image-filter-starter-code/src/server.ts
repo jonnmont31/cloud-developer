@@ -36,6 +36,10 @@ import { filter } from "bluebird";
       return res.status(400).send(`The image's URL is required`);
     }
     console.log(image_url);
+    if (typeof image_url !== "string") {
+      res.status(500).json({ error: "Invalid dataset" });
+      return;
+    }
     return res.status(200).send(filterImageFromURL(image_url));
   });
 

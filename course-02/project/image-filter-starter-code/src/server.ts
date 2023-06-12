@@ -1,7 +1,6 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
 import { filterImageFromURL, deleteLocalFiles } from "./util/util";
-import { filter } from "bluebird";
 
 (async () => {
   // Init the Express application
@@ -30,22 +29,38 @@ import { filter } from "bluebird";
   /**************************************************************************** */
 
   //! END @TODO1
-  app.get("/filteredimage", async (req, res) => {
-    let { image_url } = req.query;
+  app.get("/filteredimage", async (req: Request, res: Response) => {
+    //Pickup the image's URL from from the Requests' query parameter
+    let image_url: string = req.query.image_url as string;
+    //Throw a 400 error code if the image_url is not present in the request
     if (!image_url) {
       return res.status(400).send(`The image's URL is required`);
     }
+    //Logging
     console.log(image_url);
+    //If the image_url is not a string throw a 422
     if (typeof image_url !== "string") {
       res.status(422).json({ error: "Invalid dataset" });
       return;
     }
-    return res.status(200).send(filterImageFromURL(image_url));
+    //Using await to get the get the path to the image from the filter
+    const filterdImagePath: string = await filterImageFromURL(image_url);
+    //Log the filter
+    console.log("Filtered Image Path: " + filterdImagePath);
+    //If we do get a value...
+    if (filterdImagePath) {
+      //Return a 200 show the image on screen and proceed to the delete the file from local disk
+      return res.status(200).sendFile(filterdImagePath, () => {
+        deleteLocalFiles([filterdImagePath]);
+      });
+    }
+    //Throw a 400 if the something went wrong
+    return res.status(400).json("Could not filter image");
   });
 
   // Root Endpoint
   // Displays a simple message to the user
-  app.get("/", async (req, res) => {
+  app.get("/", async (req: Request, res: Response) => {
     res.send("try GET /filteredimage?image_url={{}}");
   });
 

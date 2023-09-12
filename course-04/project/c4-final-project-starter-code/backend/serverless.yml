@@ -11,7 +11,7 @@ plugins:
 
 provider:
   name: aws
-  runtime: nodejs16.x
+  runtime: nodejs18.x
   lambdaHashingVersion: '20201221'
 
   stage: ${opt:stage, 'dev'}
@@ -26,7 +26,7 @@ provider:
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: serverless-c4-todo-images-${self:provider.stage}
+    ATTACHMENT_S3_BUCKET: jonnmont-serverless-c4-todo-images-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
 
   logs:
@@ -60,6 +60,12 @@ functions:
         Action:
           - dynamodb:Query
         Resource: !GetAtt TodosTable.Arn
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource:
+          - '*'
 
   # TODO: Configure this function -
   # Provide iamRoleStatements property. Decide the Actions and AWS Resource.
@@ -82,6 +88,12 @@ functions:
         Action:
           - dynamodb:PutItem
         Resource: !GetAtt TodosTable.Arn
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource:
+          - '*'
 
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements, and request schemas
@@ -103,6 +115,12 @@ functions:
           - dynamodb:UpdateItem
           - dynamodb:GetItem
         Resource: !GetAtt TodosTable.Arn
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource:
+          - '*'
 
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
@@ -119,12 +137,23 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:DeleteItem
-          - dynamodb:GetItem
-        Resource: !GetAtt TodosTable.Arn
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource:
+          - '*'
       - Effect: Allow
         Action:
           - s3:DeleteObject
         Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource:
+          - '*'
 
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
@@ -150,6 +179,12 @@ functions:
         Action:
           - dynamodb:UpdateItem
         Resource: !GetAtt TodosTable.Arn
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource:
+          - '*'
 
 resources:
   Resources:
@@ -166,6 +201,14 @@ resources:
         ResponseType: DEFAULT_4XX
         RestApiId:
           Ref: ApiGatewayRestApi
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
 
     # TODO: Create a DynamoDB table with local secondary index and a composite key
     TodosTable:
@@ -228,18 +271,13 @@ resources:
     BucketPolicy:
       Type: AWS::S3::BucketPolicy
       Properties:
-        Bucket: !Ref AttachmentsBucket
         PolicyDocument:
-          Id: S3BucketPolicy
+          Id: MyPolicy
+          Version: '2012-10-17'
           Statement:
-            - Effect: Allow
-              Action:
-                - s3:GetObject
-                - s3:PutObject
-                - s3:DeleteObject
-              Resource: !Join
-                - ''
-                - - 'arn:aws:s3:::'
-                  - ${self:provider.environment.ATTACHMENT_S3_BUCKET}
-                  - /*
+            - Sid: PublicReadForGetBucketObjects
+              Effect: Allow
               Principal: '*'
+              Action: 's3:GetObject'
+              Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*'
+        Bucket: !Ref AttachmentsBucket

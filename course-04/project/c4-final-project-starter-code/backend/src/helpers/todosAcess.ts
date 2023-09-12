@@ -1,15 +1,16 @@
 import * as AWS from 'aws-sdk'
-import * as AWSXRay from 'aws-xray-sdk'
+// import * as AWSXRay from 'aws-xray-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 import { createLogger } from '../utils/logger'
 import { TodoItem } from '../models/TodoItem'
 import { TodoUpdate } from '../models/TodoUpdate'
 
+const AWSXRay = require('aws-xray-sdk')
+
 const XAWS = AWSXRay.captureAWS(AWS)
 
 const logger = createLogger('TodosAccess')
 
-// TODO: Implement the dataLayer logic
 export class TodosAccess {
   constructor(
     private readonly docClient: DocumentClient = new XAWS.DynamoDB.DocumentClient(),
@@ -26,7 +27,7 @@ export class TodosAccess {
         ExpressionAttributeValues: {
           ':userId': userId
         },
-        ScanIndexForwared: true
+        ScanIndexForward: true
       })
       .promise()
 
@@ -110,24 +111,13 @@ export class TodosAccess {
       .promise()
   }
 
-  //Deleting todo item's attachment
-  async deleteTodoItemAttachment(bucketKey: string): Promise<void> {
-    logger.info("Deleting todo item's attachment")
-    await this.s3
-      .deleteObject({
-        Bucket: this.bucketName,
-        Key: bucketKey
-      })
-      .promise()
-  }
-
   //Updating attachment URL
   async updateAttachmentUrl(
     todoId: string,
     userId: string,
     attachmentUrl: string
   ): Promise<void> {
-    logger.info('Updating attachment URL')
+    logger.info('Updating a todos attachment URL')
     await this.docClient
       .update({
         TableName: this.todoTable,

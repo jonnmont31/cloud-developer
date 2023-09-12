@@ -56,7 +56,6 @@ export async function deleteTodoItem(
   todoId: string
 ): Promise<void> {
   logger.info('Deleting todo item')
-  //Getting the todo item to see if it exists
   return todoAccess.deleteTodoItem(userId, todoId)
 }
 
@@ -64,7 +63,9 @@ export async function createAttachmentPresignedUrl(
   todoId: string,
   userId: string
 ): Promise<string> {
-  logger.info('Calling create attachment function by user', userId, todoId)
+  logger.info(
+    'Here we will get the attachments URL and updated it in its respective todo item'
+  )
   const s3AttachmentUrl = attachmentUtils.getAttachmentUrl(todoId)
   await todoAccess.updateAttachmentUrl(todoId, userId, s3AttachmentUrl)
   return attachmentUtils.getUploadUrl(todoId)

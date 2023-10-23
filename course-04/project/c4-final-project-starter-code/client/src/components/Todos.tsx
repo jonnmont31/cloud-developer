@@ -11,12 +11,14 @@ import {
   Icon,
   Input,
   Image,
-  Loader
+  Loader,
+  Form
 } from 'semantic-ui-react'
 
 import { createTodo, deleteTodo, getTodos, patchTodo } from '../api/todos-api'
 import Auth from '../auth/Auth'
 import { Todo } from '../types/Todo'
+import { Album } from '../types/Album'
 
 interface TodosProps {
   auth: Auth
@@ -24,6 +26,7 @@ interface TodosProps {
 }
 
 interface TodosState {
+  albums: Album[];
   todos: Todo[]
   newTodoName: string
   loadingTodos: boolean
@@ -31,6 +34,7 @@ interface TodosState {
 
 export class Todos extends React.PureComponent<TodosProps, TodosState> {
   state: TodosState = {
+    albums: [],
     todos: [],
     newTodoName: '',
     loadingTodos: true
@@ -109,13 +113,35 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
   render() {
     return (
       <div>
-        <Header as="h1">TODOs</Header>
+        <Header as="h1">Music Vault</Header>
 
         {this.renderCreateTodoInput()}
-
+        {this.renderAlbumForm()}
         {this.renderTodos()}
       </div>
     )
+  }
+
+  renderAlbumForm() {
+    return (<Form>
+      <Form.Field>
+        <label>Album Title</label>
+        <input placeholder='e.g. A Night At The Opera' />
+      </Form.Field>
+      <Form.Field>
+        <label>Album Artist</label>
+        <input placeholder='e.g. Queen' />
+      </Form.Field>
+      <Form.Field>
+        <label>Year</label>
+        <input placeholder='e.g. 1975' />
+      </Form.Field>
+      <Form.Field>
+        <label>Genre</label>
+        <input placeholder='e.g. Glam-Rock' />
+      </Form.Field>
+      <Button color='teal'type='submit'icon>Add Album</Button>
+    </Form>)
   }
 
   renderCreateTodoInput() {
@@ -127,7 +153,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
               color: 'teal',
               labelPosition: 'left',
               icon: 'add',
-              content: 'New task',
+              content: 'New Album',
               onClick: this.onTodoCreate
             }}
             fluid

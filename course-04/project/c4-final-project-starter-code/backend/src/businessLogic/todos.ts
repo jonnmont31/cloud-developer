@@ -33,7 +33,7 @@ export async function createTodoItem(
   const newTodo: TodoItem = {
     userId,
     todoId,
-    createdAt: new Date().toISOString(),
+    createdAt: new Date().toLocaleTimeString(),
     attachmentUrl: s3AttachmentUrl,
     done: false,
     ...createTodoRequest

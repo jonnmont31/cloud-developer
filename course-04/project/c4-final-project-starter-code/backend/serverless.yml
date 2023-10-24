@@ -24,6 +24,7 @@ provider:
   # ${self:provider.environment.ATTACHMENT_S3_BUCKET}
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
+    ALBUMS_TABLE: Albums-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: CreatedAtIndex
     ATTACHMENT_S3_BUCKET: jonnmont-serverless-c4-todo-images-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300

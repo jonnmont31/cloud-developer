@@ -1,72 +1,70 @@
-import { TodosAccess } from '../helpers/todosAcess'
+import { AlbumsAccess } from '../helpers/albumsAccess'
 import { AttachmentUtils } from '../helpers/attachmentUtils'
-import { TodoItem } from '../models/TodoItem'
-import { CreateTodoRequest } from '../requests/CreateTodoRequest'
-import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
+import { AlbumItem } from '../models/AlbumItem'
+import { CreateAlbumRequest } from '../requests/CreateAlbumRequest'
+import { UpdateAlbumRequest } from '../requests/UpdateAlbumRequest'
 import { createLogger } from '../utils/logger'
 import * as uuid from 'uuid'
 
-const todoAccess = new TodosAccess()
-const logger = createLogger('TodosFunctions')
+const albumAccess = new AlbumsAccess()
+const logger = createLogger('AlbumsFunctions')
 const attachmentUtils = new AttachmentUtils()
 
-export async function getTodos(userId: string): Promise<TodoItem[]> {
-  logger.info('Getting all todos for a specific user')
-  return await todoAccess.getTodos(userId)
+export async function getAlbums(userId: string): Promise<AlbumItem[]> {
+  logger.info('Getting all albums for a specific user')
+  return await albumAccess.getAlbums(userId)
 }
 
-export async function getTodoItem(
+export async function getAlbumItem(
   userId: string,
-  todoId: string
-): Promise<TodoItem> {
-  logger.info('Getting a specific todo item')
-  return await todoAccess.getTodoItem(userId, todoId)
+  albumId: string
+): Promise<AlbumItem> {
+  logger.info('Getting a specific album item')
+  return await albumAccess.getAlbumItem(userId, albumId)
 }
 
-export async function createTodoItem(
-  createTodoRequest: CreateTodoRequest,
+export async function createAlbumItem(
+  createAlbumRequest: CreateAlbumRequest,
   userId: string
-): Promise<TodoItem> {
-  logger.info('Creating a new todo item')
-  const todoId = uuid.v4()
-  const s3AttachmentUrl = attachmentUtils.getAttachmentUrl(todoId)
-  const newTodo: TodoItem = {
+): Promise<AlbumItem> {
+  logger.info('Creating a new album item')
+  const albumId = uuid.v4()
+  const s3AttachmentUrl = attachmentUtils.getAttachmentUrl(albumId)
+  const newAlbum: AlbumItem = {
     userId,
-    todoId,
-    createdAt: new Date().toLocaleTimeString(),
+    albumId,
     attachmentUrl: s3AttachmentUrl,
-    done: false,
-    ...createTodoRequest
+    ...createAlbumRequest
   }
 
-  return todoAccess.createTodoItem(newTodo)
+  return albumAccess.createAlbumItem(newAlbum)
 }
 
-export async function updateTodoItem(
-  updateTodoRequest: UpdateTodoRequest,
+export async function updateAlbumItem(
+  updateAlbumRequest: UpdateAlbumRequest,
   userId: string,
-  todoId: string
+  albumId: string
 ): Promise<any> {
-  logger.info('Updating todo item')
-  return todoAccess.updateTodoItem(updateTodoRequest, userId, todoId)
+  logger.info('Updating album item')
+  return albumAccess.updateAlbumItem(updateAlbumRequest, userId, albumId)
 }
 
-export async function deleteTodoItem(
+export async function deleteAlbumItem(
   userId: string,
-  todoId: string
+  albumId: string
 ): Promise<void> {
-  logger.info('Deleting todo item')
-  return todoAccess.deleteTodoItem(userId, todoId)
+  logger.info('Deleting album item')
+  return albumAccess.deleteAlbumItem(userId, albumId)
 }
 
 export async function createAttachmentPresignedUrl(
-  todoId: string,
+  albumId: string,
   userId: string
 ): Promise<string> {
   logger.info(
-    'Here we will get the attachments URL and updated it in its respective todo item'
+    'Here we will get the attachments URL and updated it in its respective album item'
   )
-  const s3AttachmentUrl = attachmentUtils.getAttachmentUrl(todoId)
-  await todoAccess.updateAttachmentUrl(todoId, userId, s3AttachmentUrl)
-  return attachmentUtils.getUploadUrl(todoId)
+  const s3AttachmentUrl = attachmentUtils.getAttachmentUrl(albumId)
+  await albumAccess.updateAttachmentUrl(albumId, userId, s3AttachmentUrl)
+  return attachmentUtils.getUploadUrl(albumId)
 }

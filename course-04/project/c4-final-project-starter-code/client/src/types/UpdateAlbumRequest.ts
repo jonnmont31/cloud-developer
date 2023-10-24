@@ -1,6 +1,6 @@
 export interface UpdateAlbumRequest {
   albumName: string
   albumArtist: string
-  year: string
-  genre: string
+  albumYear: string
+  albumGenre: string
 }

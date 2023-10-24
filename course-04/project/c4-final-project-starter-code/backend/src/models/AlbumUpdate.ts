@@ -1,5 +1,4 @@
-export interface Album {
-  albumId: string
+export interface AlbumUpdate {
   albumName: string
   albumArtist: string
   albumYear: string

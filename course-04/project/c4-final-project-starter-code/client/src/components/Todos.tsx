@@ -15,7 +15,13 @@ import {
   Form
 } from 'semantic-ui-react'
 
-import { createTodo, deleteTodo, getTodos, patchTodo } from '../api/todos-api'
+import {
+  createTodo,
+  deleteTodo,
+  getTodos,
+  patchTodo,
+  createAlbum
+} from '../api/todos-api'
 import Auth from '../auth/Auth'
 import { Todo } from '../types/Todo'
 import { Album } from '../types/Album'
@@ -26,10 +32,15 @@ interface TodosProps {
 }
 
 interface TodosState {
-  albums: Album[];
+  albums: Album[]
   todos: Todo[]
   newTodoName: string
+  albumName: string
+  albumArtist: string
+  albumYear: string
+  albumGenre: string
   loadingTodos: boolean
+  loadingAlbums: boolean
 }
 
 export class Todos extends React.PureComponent<TodosProps, TodosState> {
@@ -37,15 +48,36 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
     albums: [],
     todos: [],
     newTodoName: '',
-    loadingTodos: true
+    albumName: '',
+    albumArtist: '',
+    albumYear: '',
+    albumGenre: '',
+    loadingTodos: true,
+    loadingAlbums: true
   }
 
   handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ newTodoName: event.target.value })
+    this.setState({ albumName: event.target.value })
+  }
+
+  handleArtistChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({ albumArtist: event.target.value })
+  }
+
+  handleYearChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({ albumYear: event.target.value })
+  }
+
+  handleGenreChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({ albumGenre: event.target.value })
   }
 
   onEditButtonClick = (todoId: string) => {
     this.props.history.push(`/todos/${todoId}/edit`)
+  }
+
+  onAlbumEditButtonClick = (albumId: string) => {
+    this.props.history.push(`/albums/${albumId}/edit`)
   }
 
   onTodoCreate = async (event: React.ChangeEvent<HTMLButtonElement>) => {
@@ -66,6 +98,30 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
       }
     } catch {
       alert('Todo creation failed')
+    }
+  }
+
+  onAlbumCreate = async (event: React.FormEvent<HTMLFormElement>) => {
+    try {
+      if (this.state.albumName.replace(/\s/g, '').length) {
+        const newAlbum = await createAlbum(this.props.auth.getIdToken(), {
+          albumName: this.state.albumName,
+          albumArtist: this.state.albumArtist,
+          year: this.state.albumYear,
+          genre: this.state.albumGenre
+        })
+        this.setState({
+          albums: [...this.state.albums, newAlbum],
+          albumName: '',
+          albumArtist: '',
+          albumYear: '',
+          albumGenre: ''
+        })
+      } else {
+        alert('Album Name cannot be empty')
+      }
+    } catch {
+      alert('Album creation failed')
     }
   }
 
@@ -118,30 +174,41 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
         {this.renderCreateTodoInput()}
         {this.renderAlbumForm()}
         {this.renderTodos()}
+        {this.renderAlbumsList()}
       </div>
     )
   }
 
   renderAlbumForm() {
-    return (<Form>
-      <Form.Field>
-        <label>Album Title</label>
-        <input placeholder='e.g. A Night At The Opera' />
-      </Form.Field>
-      <Form.Field>
-        <label>Album Artist</label>
-        <input placeholder='e.g. Queen' />
-      </Form.Field>
-      <Form.Field>
-        <label>Year</label>
-        <input placeholder='e.g. 1975' />
-      </Form.Field>
-      <Form.Field>
-        <label>Genre</label>
-        <input placeholder='e.g. Glam-Rock' />
-      </Form.Field>
-      <Button color='teal'type='submit'icon>Add Album</Button>
-    </Form>)
+    return (
+      <Form onSubmit={this.onAlbumCreate}>
+        <Form.Field>
+          <label>Album Title</label>
+          <input
+            onChange={this.handleNameChange}
+            placeholder="e.g. A Night At The Opera"
+          />
+        </Form.Field>
+        <Form.Field>
+          <label>Album Artist</label>
+          <input onChange={this.handleArtistChange} placeholder="e.g. Queen" />
+        </Form.Field>
+        <Form.Field>
+          <label>Year</label>
+          <input onChange={this.handleYearChange} placeholder="e.g. 1975" />
+        </Form.Field>
+        <Form.Field>
+          <label>Genre</label>
+          <input
+            onChange={this.handleGenreChange}
+            placeholder="e.g. Glam-Rock"
+          />
+        </Form.Field>
+        <Button color="teal" type="submit" icon>
+          Add Album
+        </Button>
+      </Form>
+    )
   }
 
   renderCreateTodoInput() {
@@ -181,9 +248,34 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
     return (
       <Grid.Row>
         <Loader indeterminate active inline="centered">
-          Loading TODOs
+          Loading Albums
         </Loader>
       </Grid.Row>
+    )
+  }
+
+  renderAlbumsList() {
+    return (
+      <Grid padded>
+        {this.state.albums.map((album, pos) => {
+          return (
+            <Grid.Row key={album.albumId}>
+              {/* <Grid.Column width={1} verticalAlign="middle">
+                <Checkbox
+                  onChange={() => this.onTodoCheck(pos)}
+                  checked={todo.done}
+                />
+              </Grid.Column> */}
+              <Grid.Column width={10} verticalAlign="middle">
+                {album.albumName}
+              </Grid.Column>
+              <Grid.Column width={3} floated="right">
+                {album.albumArtist}
+              </Grid.Column>
+            </Grid.Row>
+          )
+        })}
+      </Grid>
     )
   }
 
